@@ -1,0 +1,29 @@
+Another way of addressing the walking times issue is to view the problem from a worker's perspective as a vehicle routing problem. The Google OR Tools CP-SAT solver has a so-called $.AddCircuit$ constraint, which takes as an input a set of arcs, each containing a Boolean variable indicating whether the arc is visited, and enforces a circuit through these arcs by setting the Boolean variables according to it.
+
+For our problem, a node is created for every operation and an arc is created for every worker and every pair of operations. The integer node name associated with each operation is stored in the $node_name$ dictionary. The arcs are then added to a dictionary containing all arcs, and a list containing all arcs for each worker. So, for any two machines, two jobs, two steps and one worker we add
+suffix_is_before = '_%i_%i_%i_%i_%i_%i_%i' % (worker, job1, machine1, step1,
+                                              job2, machine2, step2)
+arc_literal_var = model.NewBoolVar('arc_literal' + suffix_is_before)
+arc_literals[job1, machine1, step1, job2, machine2, step2, worker] =
+                       arc_literal_var
+arc_workers[worker].append([node_name[job1, machine1, step1],
+                            node_name[job2, machine2, step2], 
+                            arc_literal_var])
+Note that to create all the arcs, we must create $n^2$ Boolean variables. Unlike in the Google OR Tools Model 1, we can however not easily reduce the number of variables we need to create.
+An additional dummy node is created to function as the start and end node of each worker's circuit, and arcs are added accordingly. So, for every worker, job, machine and step we add
+suffix = '_%i_%i_%i' % (job, machine, step)
+is_first_var = model.NewBoolVar('is_first' + suffix)
+is_last_var = model.NewBoolVar('is_last' + suffix)
+arc_workers[worker].append((0, node_name[job, machine, step], is_first_var))
+arc_workers[worker].append((node_name[job, machine, step], 0, is_last_var))
+
+Each operation needs only be visited by one worker. We specify this as in the other Google OR Tools model. To specify that a worker need not process an operation, a loop arc is added to the node corresponding to this operation. We do this by adding loop arcs to all nodes with the negation of the variable describing whether the worker is processing this operation as the arc's Boolean variable, so for each operation and worker, we add
+arc_literals[job, machine, step, job, machine, step, worker] = 
+                           exists_var.Not()
+arc_workers[worker].append([node_name[job, machine, step],
+                           node_name[job, machine, step], exists_var.Not()])
+Finally, we add the circuit constraint for each worker.
+for worker in all_workers:
+  model.AddCircuit(arc_workers[worker])
+
+The walking times are then enforced by saying that if the Boolean literal of an arc is true, there must be at least the walking time between the arc's origin and destination operation. The remaining model is essentially as in the other Google OR Tools CP-SAT model.
