@@ -1,6 +1,6 @@
 Four different models are given for the Worker Flow Shop domain:
 - a MiniZinc model, a simplified version of which (not including worker skill levels) was included in the MiniZinc Challenge 2021
-- a IBM CPLEX CP model
+- an IBM CPLEX CP model
 - two Google OR Tools models (the superior model presented in the paper and a model 2 which includes AddCircuit constraints, a description of which is also included)
 
 Further, an XML_Reader and XML_Writer are provided which are necessary for the Google OR Tools models to read the XML input files and output its result into an XML solution file.
