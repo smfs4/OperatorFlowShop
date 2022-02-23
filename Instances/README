@@ -1,1 +1,4 @@
-
+The benchmarking files are provided in three formats:
+- .dzn files to be used directly with the MiniZinc model
+- .dat files to be used directly with the IBM CPLEX CP model
+- XML configuration and initial files, which are used as input for the Google OR Tools models (a description of these files is also included), the configuration files give information about the workshop configuration, while the initial files give information about the initial setup in the workshop
